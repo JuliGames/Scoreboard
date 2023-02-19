@@ -11,6 +11,7 @@ import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -27,6 +28,14 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
     @Override
     default @NotNull ScoreboardResult apply(@NotNull Player player) {
 
+        Set<ScoreboardLine> scoreboardLineSet = new HashSet<>();
+
+        for (int i = 0; i < 15; i++) {
+            ScoreboardReturn scoreboardReturn = provide(player, i);
+            scoreboardLineSet.add(scoreboardReturn.toLine(i));
+        }
+
+        return new ScoreboardResult(scoreboardLineSet);
     }
 
     record ScoreboardLine(@Range(from = 0, to = 15) int line,
@@ -57,9 +66,13 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
     }
 
     record ScoreboardReturn(String messageKey,
-                            BiFunction<Player, Integer, String[]> replacementSupplier)
+                            BiFunction<Player, Integer, String[]> replacementSupplier) {
 
-    ;
+        public @NotNull ScoreboardLine toLine(@Range(from = 0, to = 15) int line) {
+            return new ScoreboardLine(line, messageKey, replacementSupplier);
+        }
+    }
+
 
     class ScoreboardResult {
         private final @NotNull Set<ScoreboardLine> lines;
@@ -89,6 +102,12 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
             return scoreboard;
         }
 
+        private void createAndApply(@NotNull Player player, @NotNull ScoreboardManager manager) {
+            Scoreboard scoreboard = createScoreboardForPlayer(player, manager);
+            API.get().getAPILogger().debug("applied scoreboard " + scoreboard + " for " + player.getName());
+            player.setScoreboard(scoreboard);
+        }
+
         protected @NotNull Objective createObjectiveForPlayer(@NotNull Player player, @NotNull Scoreboard scoreboard) {
             return scoreboard.registerNewObjective(player.getUniqueId().toString(), Criteria.DUMMY,
                     getDisplayName().render(player));
@@ -108,6 +127,16 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
 
         protected @NotNull String convertToLEGACY(@NotNull Component component) {
             return LegacyComponentSerializer.legacySection().serialize(component);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ScoreboardResult: {\n");
+            for (ScoreboardLine line : lines)
+                builder.append(line.messageKey()).append(", \n");
+            builder.append("}");
+            return builder.toString();
         }
     }
 }
