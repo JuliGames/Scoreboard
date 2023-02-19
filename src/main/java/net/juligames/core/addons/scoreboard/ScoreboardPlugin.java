@@ -1,5 +1,6 @@
 package net.juligames.core.addons.scoreboard;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ScoreboardPlugin extends JavaPlugin {
