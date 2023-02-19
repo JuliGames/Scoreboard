@@ -30,14 +30,14 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
         scoreboardResult.createAndApply(player, Bukkit.getScoreboardManager());
     }
 
-    @NotNull ScoreboardReturn provide(@NotNull Player target, @Range(from = 0, to = 15) int line);
+    @NotNull ScoreboardReturn provide(@NotNull Player target, @Range(from = 0, to = 16) int line);
 
     @Override
     default @NotNull ScoreboardResult apply(@NotNull Player player) {
 
         Set<ScoreboardLine> scoreboardLineSet = new HashSet<>();
 
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 16; i++) {
             ScoreboardReturn scoreboardReturn = provide(player, i);
             scoreboardLineSet.add(scoreboardReturn.toLine(i));
         }
@@ -45,7 +45,7 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
         return new ScoreboardResult(scoreboardLineSet);
     }
 
-    record ScoreboardLine(@Range(from = 0, to = 15) int line,
+    record ScoreboardLine(@Range(from = 0, to = 16) int line,
                           String messageKey,
                           BiFunction<Player, Integer, String[]> replacementSupplier) implements Comparable<ScoreboardLine> {
 
@@ -79,7 +79,7 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
     record ScoreboardReturn(String messageKey,
                             BiFunction<Player, Integer, String[]> replacementSupplier) {
 
-        public @NotNull ScoreboardLine toLine(@Range(from = 0, to = 15) int line) {
+        public @NotNull ScoreboardLine toLine(@Range(from = 0, to = 16) int line) {
             return new ScoreboardLine(line, messageKey, replacementSupplier);
         }
     }
@@ -96,7 +96,7 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
             return lines.stream().sorted().toArray(ScoreboardLine[]::new);
         }
 
-        public @NotNull ScoreboardLine get(@Range(from = 0, to = 15) int line) {
+        public @NotNull ScoreboardLine get(@Range(from = 0, to = 16) int line) {
             return lines.stream().filter(scoreboardLine ->
                     scoreboardLine.line == line).findFirst().orElseThrow();
         }
@@ -107,7 +107,7 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
 
         public @NotNull Scoreboard createScoreboardForPlayer(@NotNull Player player,
                                                              @NotNull ScoreboardManager scoreboardManager) {
-            Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
+            Scoreboard scoreboard = scoreboardManager.getNewScoreboard(); //fix
             Objective objective = createObjectiveForPlayer(player, scoreboard);
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
             return scoreboard;
@@ -127,9 +127,9 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
         }
 
         protected void populateObjective(@NotNull Objective objective, @NotNull Player player) {
-            for (int i = 0; i < 15; i++) {
+            for (int i = 1; i < 16; i++) {
                 ScoreboardLine scoreboardLine = get(i);
-                objective.getScore(convertToLEGACY(scoreboardLine.render(player)));
+                objective.getScore(convertToLEGACY(scoreboardLine.render(player))).setScore(i);
             }
         }
 

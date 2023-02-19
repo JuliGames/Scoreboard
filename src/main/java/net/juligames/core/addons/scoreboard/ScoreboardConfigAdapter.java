@@ -35,7 +35,7 @@ public final class ScoreboardConfigAdapter {
     }
 
     private void applyDefaults() {
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 16; i++) {
             if (service != null) {
                 configuration.addDefault(String.valueOf(i), service.getDefaultKey());
             }
@@ -44,7 +44,7 @@ public final class ScoreboardConfigAdapter {
 
     public boolean isDefault() {
         boolean stillDefault = true;
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < 16; i++)
             if (service != null && !configuration.getString(String.valueOf(i), service.getDefaultKey()).equals(service.getDefaultKey())) stillDefault = false;
         return stillDefault;
     }

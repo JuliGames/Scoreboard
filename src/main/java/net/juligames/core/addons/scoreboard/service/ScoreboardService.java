@@ -27,9 +27,9 @@ public sealed interface ScoreboardService permits ScoreboardServiceProvider {
 
     @NotNull String getDefaultKey();
 
-    @NotNull String getKey(@Range(from = 0, to = 15) int position, @NotNull Player player);
+    @NotNull String getKey(@Range(from = 0, to = 16) int position, @NotNull Player player);
 
-    @NotNull Message renderMessage(@Range(from = 0, to = 15) int position, @NotNull Player player);
+    @NotNull Message renderMessage(@Range(from = 0, to = 16) int position, @NotNull Player player);
 
     @NotNull ServiceLayer getCurrentServiceLayer();
 

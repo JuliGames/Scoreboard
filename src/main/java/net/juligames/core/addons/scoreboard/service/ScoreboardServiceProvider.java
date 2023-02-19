@@ -58,12 +58,12 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     }
 
     @Override
-    public @NotNull String getKey(@Range(from = 0, to = 15) int position, @NotNull Player player) {
+    public @NotNull String getKey(@Range(from = 0, to = 16) int position, @NotNull Player player) {
         return provideBest().map(provider -> provider.provide(player, position).messageKey()).orElse(getDefaultKey());
     }
 
     @Override
-    public @NotNull Message renderMessage(@Range(from = 0, to = 15) int position, @NotNull Player player) {
+    public @NotNull Message renderMessage(@Range(from = 0, to = 16) int position, @NotNull Player player) {
         return provideBest().map(provider ->
                         provider.provide(player, position).toLine(position).export(player))
                 .orElseGet(() ->

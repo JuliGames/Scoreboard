@@ -16,7 +16,6 @@ public final class ScoreboardPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        reloadConfig(); //maybe fix?
         saveDefaultConfig();
         registerService();
         saveConfig();
