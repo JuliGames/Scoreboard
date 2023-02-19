@@ -6,6 +6,7 @@ import net.juligames.core.api.API;
 import net.juligames.core.api.message.Message;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,12 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.ScoreboardResult> {
+
+    static void handlePlayerUpdate(@NotNull Player player, @NotNull ScoreboardProvider provider) {
+        ScoreboardResult scoreboardResult = provider.apply(player);
+        API.get().getAPILogger().debug("handle scoreboard update for " + player.getName());
+        scoreboardResult.createAndApply(player, Bukkit.getScoreboardManager());
+    }
 
     @NotNull ScoreboardReturn provide(@NotNull Player target, @Range(from = 0, to = 15) int line);
 
@@ -54,14 +61,18 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
 
         public @NotNull Component render(@NotNull Player player) {
             AdventureTagManager adventureTagManager = AdventureAPI.get().getAdventureTagManager();
-            Message message = API.get().getMessageApi().getMessageSmart(messageKey, player.locale());
-            return adventureTagManager.resolve(message);
+            return adventureTagManager.resolve(export(player));
         }
 
-        public @NotNull Component render(@NotNull Player player, String... replacements) {
-            AdventureTagManager adventureTagManager = AdventureAPI.get().getAdventureTagManager();
-            Message message = API.get().getMessageApi().getMessageSmart(messageKey, player.locale(), replacements);
-            return adventureTagManager.resolve(message);
+        public @NotNull Message export(@NotNull Player player) {
+            String[] replacements = replacementSupplier.apply(player, line);
+            Message message;
+            if (replacements == null) {
+                message = API.get().getMessageApi().getMessageSmart(messageKey, player.locale());
+            } else {
+                message = API.get().getMessageApi().getMessageSmart(messageKey, player.locale(), replacements);
+            }
+            return message;
         }
     }
 
@@ -102,26 +113,23 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
             return scoreboard;
         }
 
-        private void createAndApply(@NotNull Player player, @NotNull ScoreboardManager manager) {
+        public void createAndApply(@NotNull Player player, @NotNull ScoreboardManager manager) {
             Scoreboard scoreboard = createScoreboardForPlayer(player, manager);
             API.get().getAPILogger().debug("applied scoreboard " + scoreboard + " for " + player.getName());
             player.setScoreboard(scoreboard);
         }
 
         protected @NotNull Objective createObjectiveForPlayer(@NotNull Player player, @NotNull Scoreboard scoreboard) {
-            return scoreboard.registerNewObjective(player.getUniqueId().toString(), Criteria.DUMMY,
+            Objective objective = scoreboard.registerNewObjective(player.getUniqueId().toString(), Criteria.DUMMY,
                     getDisplayName().render(player));
+            populateObjective(objective, player);
+            return objective;
         }
 
         protected void populateObjective(@NotNull Objective objective, @NotNull Player player) {
             for (int i = 0; i < 15; i++) {
                 ScoreboardLine scoreboardLine = get(i);
-                String[] apply = scoreboardLine.replacementSupplier.apply(player, i);
-                if (apply == null) {
-                    objective.getScore(convertToLEGACY(scoreboardLine.render(player)));
-                } else {
-                    objective.getScore(convertToLEGACY(scoreboardLine.render(player, apply)));
-                }
+                objective.getScore(convertToLEGACY(scoreboardLine.render(player)));
             }
         }
 

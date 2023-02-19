@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author Ture Bentzin
@@ -55,6 +56,8 @@ public sealed interface ScoreboardService permits ScoreboardServiceProvider {
     boolean enable(boolean enable, @NotNull Player target);
 
     void update();
+
+    void update(@NotNull Predicate<Player> playerPredicate);
 
     @NotNull Collection<UUID> getEnabled();
 
