@@ -1,0 +1,6 @@
+name: Scoreboard
+version: '${project.version}'
+main: net.juligames.core.addons.scoreboard.ScoreboardPlugin
+api-version: 1.18
+author: Ture Bentzin
+depend: [ PaperCore ]
