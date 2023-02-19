@@ -120,7 +120,7 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
         }
 
         protected @NotNull Objective createObjectiveForPlayer(@NotNull Player player, @NotNull Scoreboard scoreboard) {
-            Objective objective = scoreboard.registerNewObjective(player.getUniqueId().toString(), Criteria.DUMMY,
+            Objective objective = scoreboard.registerNewObjective(player.getUniqueId().toString(), "dummy",
                     getDisplayName().render(player));
             populateObjective(objective, player);
             return objective;

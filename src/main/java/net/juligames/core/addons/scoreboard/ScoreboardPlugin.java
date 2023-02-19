@@ -1,13 +1,41 @@
 package net.juligames.core.addons.scoreboard;
 
-import org.bukkit.entity.Player;
+import net.juligames.core.addons.scoreboard.service.ScoreboardService;
+import net.juligames.core.addons.scoreboard.service.ScoreboardServiceProvider;
+import net.juligames.core.addons.scoreboard.test.TestEventListener;
+import net.juligames.core.addons.scoreboard.test.UpdateCommandExecutor;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public final class ScoreboardPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
         // Plugin startup logic
+        reloadConfig(); //maybe fix?
+        saveDefaultConfig();
+        registerService();
+        saveConfig();
+        //TESTS
+        Bukkit.getPluginManager().registerEvents(new TestEventListener(), this);
+        getCommand("update").setExecutor(new UpdateCommandExecutor());
+    }
+
+    private void registerService() {
+
+        ScoreboardConfigAdapter scoreboardConfigAdapter = new ScoreboardConfigAdapter(getConfig());
+        Bukkit.getServicesManager().register(ScoreboardService.class,
+                new ScoreboardServiceProvider(scoreboardConfigAdapter),
+                this,
+                ServicePriority.Highest);
+    }
+
+    public @NotNull ScoreboardService scoreboardService() {
+        return Objects.requireNonNull(Bukkit.getServicesManager().load(ScoreboardService.class));
     }
 
     @Override

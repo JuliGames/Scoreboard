@@ -1,0 +1,7 @@
+#Welcome to Scoreboard for Core!
+#With this Utility you can give your PaperCore power over your Scoreboards. This File manages the fallback Scoreboard
+#A Scoreboard has 16 Lines (numbered 0-15). The first one is used as the "Header" of the Scoreboard
+#If a plugin on this server uses the ScoreboardService it has priority over this configuration!
+#If you need assistance with the setup of this config, please check the wiki of the plugin that uses this service first
+#In the case that does not help you, or you need help with the standalone setup of this plugin, contact me via email
+# Ture Bentzin | bentzin@tdrstuios.de | ${project.version}

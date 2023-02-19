@@ -1,16 +1,17 @@
 package net.juligames.core.addons.scoreboard;
 
 import net.juligames.core.addons.scoreboard.service.ScoreboardProvider;
+import net.juligames.core.addons.scoreboard.service.ScoreboardService;
 import net.juligames.core.addons.scoreboard.service.ScoreboardServiceProvider;
+import net.juligames.core.api.API;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.checkerframework.checker.optional.qual.MaybePresent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
-
-import static net.juligames.core.addons.scoreboard.service.ScoreboardServiceProvider.NULL_KEY;
 
 /**
  * @author Ture Bentzin
@@ -18,27 +19,33 @@ import static net.juligames.core.addons.scoreboard.service.ScoreboardServiceProv
  */
 public final class ScoreboardConfigAdapter {
 
-    private final @NotNull ScoreboardProvider provider;
+    private @Nullable ScoreboardService service;
     private final @NotNull FileConfiguration configuration;
 
-    public ScoreboardConfigAdapter(@NotNull ScoreboardProvider provider, @NotNull FileConfiguration configuration) {
-        this.provider = provider;
+    public ScoreboardConfigAdapter(@NotNull ScoreboardService service, @NotNull FileConfiguration configuration) {
+        this.service = service;
         this.configuration = configuration;
-
         applyDefaults();
+    }
 
+    public ScoreboardConfigAdapter(@NotNull FileConfiguration configuration) {
+        this.service = null;
+        this.configuration = configuration;
+        applyDefaults();
     }
 
     private void applyDefaults() {
         for (int i = 0; i < 15; i++) {
-            configuration.addDefault(String.valueOf(i), NULL_KEY);
+            if (service != null) {
+                configuration.addDefault(String.valueOf(i), service.getDefaultKey());
+            }
         }
     }
 
     public boolean isDefault() {
         boolean stillDefault = true;
         for (int i = 0; i < 15; i++)
-            if (!configuration.getString(String.valueOf(i), NULL_KEY).equals(NULL_KEY)) stillDefault = false;
+            if (service != null && !configuration.getString(String.valueOf(i), service.getDefaultKey()).equals(service.getDefaultKey())) stillDefault = false;
         return stillDefault;
     }
 
@@ -47,12 +54,23 @@ public final class ScoreboardConfigAdapter {
         if (isDefault())
             return Optional.empty();
 
-        ScoreboardProvider provider1 = (target, line) -> new ScoreboardProvider.ScoreboardReturn(configuration.getString(String.valueOf(line), NULL_KEY), new ScoreboardServiceProvider.EmptyReplacementSupplier());
+        ScoreboardProvider provider1 = (target, line) -> {
+            if (service != null) {
+                String string = configuration.getString(String.valueOf(line), service.getDefaultKey());
+                API.get().getAPILogger().debug("extract: " + string + " for " + line);
+                return new ScoreboardProvider.ScoreboardReturn(string, new ScoreboardServiceProvider.EmptyReplacementSupplier());
+            }
+            throw new IllegalStateException("adapter is not ready!");
+        };
         return Optional.of(provider1);
     }
 
     @ApiStatus.Internal
-    public <R> @NotNull R execute(@NotNull BiFunction<ScoreboardProvider, FileConfiguration, R> function) {
-        return function.apply(provider, configuration);
+    public <R> @NotNull R execute(@NotNull BiFunction<ScoreboardService, FileConfiguration, R> function) {
+        return function.apply(service, configuration);
+    }
+
+    public void setService(@NotNull ScoreboardService service) {
+        this.service = service;
     }
 }

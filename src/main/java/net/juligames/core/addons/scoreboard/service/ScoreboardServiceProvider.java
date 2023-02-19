@@ -1,5 +1,6 @@
 package net.juligames.core.addons.scoreboard.service;
 
+import net.juligames.core.addons.scoreboard.ScoreboardConfigAdapter;
 import net.juligames.core.addons.scoreboard.ServiceLayer;
 import net.juligames.core.api.API;
 import net.juligames.core.api.err.dev.TODOException;
@@ -34,13 +35,21 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     private @Nullable ScoreboardProvider scoreboardProvider;
     private @NotNull ServiceLayer serviceLayer = ServiceLayer.NOTHING;
     private boolean enabled = true;
+    private @NotNull ScoreboardConfigAdapter adapter;
 
 
-    public ScoreboardServiceProvider(@NotNull Set<UUID> enabledUUIDs, @Nullable ScoreboardProvider provider, @NotNull String defaultKey) {
+    public ScoreboardServiceProvider(@NotNull Set<UUID> enabledUUIDs, @Nullable ScoreboardProvider provider, @NotNull String defaultKey, @NotNull ScoreboardConfigAdapter adapter) {
         this.enabledUUIDs = enabledUUIDs;
         scoreboardProvider = provider;
         this.defaultKey = defaultKey;
+        adapter.setService(this);
+        this.adapter = adapter;
         updateServiceLayer();
+
+    }
+
+    public ScoreboardServiceProvider(@NotNull ScoreboardConfigAdapter adapter) {
+        this(new HashSet<>(), null, NULL_KEY, adapter);
     }
 
     @Override
@@ -50,7 +59,7 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
 
     @Override
     public @NotNull String getKey(@Range(from = 0, to = 15) int position, @NotNull Player player) {
-        return provideBest().map(provider -> provider.provide(player, position).messageKey()).orElse(NULL_KEY);
+        return provideBest().map(provider -> provider.provide(player, position).messageKey()).orElse(getDefaultKey());
     }
 
     @Override
@@ -58,7 +67,7 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
         return provideBest().map(provider ->
                         provider.provide(player, position).toLine(position).export(player))
                 .orElseGet(() ->
-                        API.get().getMessageApi().getMessageSmart(NULL_KEY, player.locale()));
+                        API.get().getMessageApi().getMessageSmart(getDefaultKey(), player.locale()));
     }
 
     @Override
@@ -163,12 +172,12 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     }
 
     private boolean canProvideFromConfig() {
-        throw new TODOException();
+        return !adapter.isDefault();
     }
 
     private @NotNull Optional<ScoreboardProvider> provideFromConfig() {
         if (canProvideFromConfig()) {
-            throw new TODOException();
+            return adapter.scoreboardProvider();
         } else return Optional.empty();
     }
 
@@ -188,6 +197,7 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
         public @NotNull Scoreboard get() {
             return Bukkit.getScoreboardManager().getNewScoreboard();
         }
+
     }
 
     public static final class EmptyReplacementSupplier implements BiFunction<Player, Integer, String[]> {
