@@ -58,6 +58,18 @@ public sealed interface ScoreboardService permits ScoreboardServiceProvider {
 
     void update(@NotNull Predicate<Player> playerPredicate);
 
+    void updateI(@NotNull Predicate<Integer> integerPredicate);
+
+    default void updateOneLine(@Range(from = 0, to = 16) int line) {
+        updateI(integer -> integer == line);
+    }
+
+    default void updateOneLine(@NotNull Predicate<Player> playerPredicate, @Range(from = 0, to = 16) int line) {
+        update(playerPredicate, integer -> integer == line);
+    }
+
+    void update(@NotNull Predicate<Player> playerPredicate, @NotNull Predicate<Integer> integerPredicate);
+
     @NotNull Collection<UUID> getEnabled();
 
     /**

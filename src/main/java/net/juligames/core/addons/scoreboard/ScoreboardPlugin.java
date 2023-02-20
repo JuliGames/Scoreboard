@@ -35,5 +35,11 @@ public final class ScoreboardPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        try {
+            scoreboardService().enable(false);
+        }catch (Exception e) {
+            getLogger().severe("Failed to disable scoreboardService!" + e.getMessage());
+            getLogger().severe("No further information");
+        }
     }
 }

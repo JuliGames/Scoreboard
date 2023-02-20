@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author Ture Bentzin
@@ -30,21 +31,29 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
     static void handlePlayerUpdate(@NotNull Player player, @NotNull ScoreboardProvider provider) {
         ScoreboardResult scoreboardResult = provider.apply(player);
         API.get().getAPILogger().debug("handle scoreboard update for " + player.getName());
-        scoreboardResult.createAndApply(player, Bukkit.getScoreboardManager());
+        scoreboardResult.createAndApply(player, Bukkit.getScoreboardManager(), integer -> true);
+    }
+
+    static void handlePlayerUpdate(@NotNull Player player, @NotNull ScoreboardProvider provider, @NotNull Predicate<Integer> integerPredicate) {
+        ScoreboardResult scoreboardResult = provider.apply(player);
+        API.get().getAPILogger().debug("handle scoreboard update for " + player.getName());
+        scoreboardResult.createAndApply(player, Bukkit.getScoreboardManager(), integerPredicate);
     }
 
     @NotNull ScoreboardReturn provide(@NotNull Player target, @Range(from = 0, to = 16) int line);
 
     @Override
     default @NotNull ScoreboardResult apply(@NotNull Player player) {
+        return apply(player, integer -> true);
+    }
 
+    default @NotNull ScoreboardResult apply(@NotNull Player player, @NotNull Predicate<Integer> integerPredicate) {
         Set<ScoreboardLine> scoreboardLineSet = new HashSet<>();
-
         for (int i = 0; i < 16; i++) {
+            if (!integerPredicate.test(i)) continue;
             ScoreboardReturn scoreboardReturn = provide(player, i);
             scoreboardLineSet.add(scoreboardReturn.toLine(i));
         }
-
         return new ScoreboardResult(scoreboardLineSet);
     }
 
@@ -109,28 +118,29 @@ public interface ScoreboardProvider extends Function<Player, ScoreboardProvider.
         }
 
         public @NotNull Scoreboard createScoreboardForPlayer(@NotNull Player player,
-                                                             @NotNull ScoreboardManager scoreboardManager) {
+                                                             @NotNull ScoreboardManager scoreboardManager, @NotNull Predicate<Integer> integerPredicate) {
             Scoreboard scoreboard = scoreboardManager.getNewScoreboard(); //fix
-            Objective objective = createObjectiveForPlayer(player, scoreboard);
+            Objective objective = createObjectiveForPlayer(player, scoreboard, integerPredicate);
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
             return scoreboard;
         }
 
-        public void createAndApply(@NotNull Player player, @NotNull ScoreboardManager manager) {
-            Scoreboard scoreboard = createScoreboardForPlayer(player, manager);
+        public void createAndApply(@NotNull Player player, @NotNull ScoreboardManager manager, @NotNull Predicate<Integer> integerPredicate) {
+            Scoreboard scoreboard = createScoreboardForPlayer(player, manager, integerPredicate);
             API.get().getAPILogger().debug("applied scoreboard " + scoreboard + " for " + player.getName());
             player.setScoreboard(scoreboard);
         }
 
-        protected @NotNull Objective createObjectiveForPlayer(@NotNull Player player, @NotNull Scoreboard scoreboard) {
+        protected @NotNull Objective createObjectiveForPlayer(@NotNull Player player, @NotNull Scoreboard scoreboard, @NotNull Predicate<Integer> integerPredicate) {
             Objective objective = scoreboard.registerNewObjective(player.getUniqueId().toString(), "dummy",
                     getDisplayName().render(player));
-            populateObjective(objective, player);
+            populateObjective(objective, player, integerPredicate);
             return objective;
         }
 
-        protected void populateObjective(@NotNull Objective objective, @NotNull Player player) {
+        protected void populateObjective(@NotNull Objective objective, @NotNull Player player, @NotNull Predicate<Integer> integerPredicate) {
             for (int i = 1; i < 16; i++) {
+                if(!integerPredicate.test(i)) continue;
                 ScoreboardLine scoreboardLine = get(i);
                 objective.getScore(convertToLEGACY(scoreboardLine.render(player))).setScore(i);
             }

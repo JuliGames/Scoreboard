@@ -31,13 +31,14 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
 
     private final @NotNull Set<UUID> enabledUUIDs;
     private final @NotNull String defaultKey;
+    private final @NotNull ScoreboardConfigAdapter adapter;
     private @Nullable ScoreboardProvider scoreboardProvider;
     private @NotNull ServiceLayer serviceLayer = ServiceLayer.NOTHING;
     private boolean enabled = true;
-    private final @NotNull ScoreboardConfigAdapter adapter;
 
 
-    public ScoreboardServiceProvider(@NotNull Set<UUID> enabledUUIDs, @Nullable ScoreboardProvider provider, @NotNull String defaultKey, @NotNull ScoreboardConfigAdapter adapter) {
+    public ScoreboardServiceProvider(@NotNull Set<UUID> enabledUUIDs, @Nullable ScoreboardProvider provider,
+                                     @NotNull String defaultKey, @NotNull ScoreboardConfigAdapter adapter) {
         this.enabledUUIDs = enabledUUIDs;
         scoreboardProvider = provider;
         this.defaultKey = defaultKey;
@@ -64,9 +65,8 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     @Override
     public @NotNull Message renderMessage(@Range(from = 0, to = 16) int position, @NotNull Player player) {
         return provideBest().map(provider ->
-                        provider.provide(player, position).toLine(position).export(player))
-                .orElseGet(() ->
-                        API.get().getMessageApi().getMessageSmart(getDefaultKey(), player.locale()));
+                provider.provide(player, position).toLine(position).export(player)).orElseGet(() ->
+                API.get().getMessageApi().getMessageSmart(getDefaultKey(), player.locale()));
     }
 
     @Override
@@ -117,18 +117,27 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
 
     @Override
     public void update() {
-        if (enabled)
-            update(player -> true);
+        if (enabled) update(player -> true);
     }
 
     @Override
     public void update(@NotNull Predicate<Player> playerPredicate) {
+
+    }
+
+    @Override
+    public void updateI(@NotNull Predicate<Integer> integerPredicate) {
+
+    }
+
+    @Override
+    public void update(@NotNull Predicate<Player> playerPredicate, @NotNull Predicate<Integer> integerPredicate) {
+
         if (!enabled) return;
-        //noinspection ConstantValue
         if ((serviceLayer.equals(ServiceLayer.API) && scoreboardProvider != null) || canProvideFromConfig()) {
             ScoreboardProvider provider = provideBest().orElseThrow();
             forEachEnabledOnlinePlayer(player ->
-                    ScoreboardProvider.handlePlayerUpdate(player, provider), playerPredicate);
+                    ScoreboardProvider.handlePlayerUpdate(player, provider, integerPredicate), playerPredicate);
         } else {
             //empy Scoreboard for every player
             clearAllBoards(playerPredicate);
@@ -136,13 +145,17 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     }
 
     private void forEachEnabledOnlinePlayer(@NotNull Consumer<Player> forEach, @NotNull Predicate<Player> playerPredicate) {
-        getEnabled().stream().map(Bukkit::getPlayer).filter(playerPredicate)
-                .filter(Objects::nonNull).forEach(forEach);
+        getEnabled().stream().map(Bukkit::getPlayer)
+                .filter(playerPredicate).
+                filter(Objects::nonNull).
+                forEach(forEach);
     }
 
     private void forEachEnabledOnlinePlayer(@NotNull Consumer<Player> forEach) {
         getEnabled().stream().map(Bukkit::getPlayer)
-                .filter(Objects::nonNull).filter(OfflinePlayer::isOnline).forEach(forEach);
+                .filter(Objects::nonNull)
+                .filter(OfflinePlayer::isOnline).
+                forEach(forEach);
     }
 
     private void updateServiceLayer() {
