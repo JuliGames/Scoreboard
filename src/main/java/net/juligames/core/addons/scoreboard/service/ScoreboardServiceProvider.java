@@ -3,7 +3,6 @@ package net.juligames.core.addons.scoreboard.service;
 import net.juligames.core.addons.scoreboard.ScoreboardConfigAdapter;
 import net.juligames.core.addons.scoreboard.ServiceLayer;
 import net.juligames.core.api.API;
-import net.juligames.core.api.err.dev.TODOException;
 import net.juligames.core.api.message.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -35,7 +34,7 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     private @Nullable ScoreboardProvider scoreboardProvider;
     private @NotNull ServiceLayer serviceLayer = ServiceLayer.NOTHING;
     private boolean enabled = true;
-    private @NotNull ScoreboardConfigAdapter adapter;
+    private final @NotNull ScoreboardConfigAdapter adapter;
 
 
     public ScoreboardServiceProvider(@NotNull Set<UUID> enabledUUIDs, @Nullable ScoreboardProvider provider, @NotNull String defaultKey, @NotNull ScoreboardConfigAdapter adapter) {
@@ -103,16 +102,15 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
     }
 
     /**
-     *
      * @param enable the new value
      * @param target the context
      * @return if the operation was successful
      */
     @Override
     public boolean enable(boolean enable, @NotNull Player target) {
-        if(enable) {
-           return enabledUUIDs.add(target.getUniqueId());
-        }else {
+        if (enable) {
+            return enabledUUIDs.add(target.getUniqueId());
+        } else {
             return enabledUUIDs.remove(target.getUniqueId());
         }
     }

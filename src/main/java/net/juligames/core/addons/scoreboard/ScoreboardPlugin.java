@@ -2,8 +2,6 @@ package net.juligames.core.addons.scoreboard;
 
 import net.juligames.core.addons.scoreboard.service.ScoreboardService;
 import net.juligames.core.addons.scoreboard.service.ScoreboardServiceProvider;
-import net.juligames.core.addons.scoreboard.test.TestEventListener;
-import net.juligames.core.addons.scoreboard.test.UpdateCommandExecutor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,9 +17,6 @@ public final class ScoreboardPlugin extends JavaPlugin {
         saveDefaultConfig();
         registerService();
         saveConfig();
-        //TESTS
-        Bukkit.getPluginManager().registerEvents(new TestEventListener(), this);
-        getCommand("update").setExecutor(new UpdateCommandExecutor());
     }
 
     private void registerService() {

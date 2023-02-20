@@ -19,8 +19,8 @@ import java.util.function.BiFunction;
  */
 public final class ScoreboardConfigAdapter {
 
-    private @Nullable ScoreboardService service;
     private final @NotNull FileConfiguration configuration;
+    private @Nullable ScoreboardService service;
 
     public ScoreboardConfigAdapter(@NotNull ScoreboardService service, @NotNull FileConfiguration configuration) {
         this.service = service;
@@ -45,7 +45,8 @@ public final class ScoreboardConfigAdapter {
     public boolean isDefault() {
         boolean stillDefault = true;
         for (int i = 0; i < 16; i++)
-            if (service != null && !configuration.getString(String.valueOf(i), service.getDefaultKey()).equals(service.getDefaultKey())) stillDefault = false;
+            if (service != null && !configuration.getString(String.valueOf(i), service.getDefaultKey()).equals(service.getDefaultKey()))
+                stillDefault = false;
         return stillDefault;
     }
 
