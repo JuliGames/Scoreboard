@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
  * @author Ture Bentzin
  * 19.02.2023
  */
+@SuppressWarnings("unused")
 public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
 
 
@@ -117,22 +118,21 @@ public non-sealed class ScoreboardServiceProvider implements ScoreboardService {
 
     @Override
     public void update() {
-        if (enabled) update(player -> true);
+        update(player -> true);
     }
 
     @Override
     public void update(@NotNull Predicate<Player> playerPredicate) {
-
+        update(playerPredicate, integer -> true);
     }
 
     @Override
     public void updateI(@NotNull Predicate<Integer> integerPredicate) {
-
+        update(player -> true, integerPredicate);
     }
 
     @Override
     public void update(@NotNull Predicate<Player> playerPredicate, @NotNull Predicate<Integer> integerPredicate) {
-
         if (!enabled) return;
         if ((serviceLayer.equals(ServiceLayer.API) && scoreboardProvider != null) || canProvideFromConfig()) {
             ScoreboardProvider provider = provideBest().orElseThrow();

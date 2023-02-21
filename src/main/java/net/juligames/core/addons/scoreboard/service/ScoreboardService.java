@@ -17,6 +17,7 @@ import java.util.function.Predicate;
  * @author Ture Bentzin
  * 19.02.2023
  */
+@SuppressWarnings("UnusedReturnValue")
 public sealed interface ScoreboardService permits ScoreboardServiceProvider {
 
     default @NotNull Function<UUID, Player> uuidIdentifier() {
@@ -76,4 +77,5 @@ public sealed interface ScoreboardService permits ScoreboardServiceProvider {
      * @param provider if null: back to config or nothing
      */
     void setScoreboardProvider(@Nullable ScoreboardProvider provider);
+
 }
